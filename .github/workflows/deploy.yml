@@ -1,0 +1,78 @@
+name: Deploy to Amazon EC2
+
+on:
+  push:
+    branches: [ "develop" ]
+
+env:
+  AWS_REGION: ap-northeast-2                   # set this to your preferred AWS region, e.g. us-west-1
+  S3_BUCKET_NAME: fridge-rescue-deploy-s3-bucket
+  CODE_DEPLOY_APPLICATION_NAME: fridge-rescue-server
+  CODE_DEPLOY_DEPLOYMENT_GROUP_NAME: fridge-rescue-deploy-group
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    name: Deploy
+    runs-on: ubuntu-latest
+    environment: develop
+
+    steps:
+      # 기본 체크아웃
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      # JDK 17 세팅
+      - name: Set up JDK 17
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      # Property 주입: application-dev.yml
+      - name: Add Dev ENV Properties
+        run: |
+          touch ./src/main/resources/application-dev.yml
+          echo "${{ secrets.APPLICATION_DEV_ENV }}" > ./src/main/resources/application-dev.yml
+          cat ./src/main/resources/application-dev.yml
+
+      # Property 주입: application-secret.yml
+      - name: Add Secret ENV Properties
+        run: |
+          touch ./src/main/resources/application-secret.yml
+          echo "${{ secrets.APPLICATION_SECRET_ENV }}" > ./src/main/resources/application-secret.yml
+          cat ./src/main/resources/application-secret.yml
+
+      # Gradle build (Test 제외)
+      - name: Build with Gradle
+        uses: gradle/gradle-build-action@v2
+        with:
+          arguments: clean build -x test
+
+      # AWS 인증(IAM 사용자 Access Key, Secret Key)
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_ACCESS_SECRET_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      # Upload Build Output -> S3 Bucket
+      - name: Upload to AWS S3
+        run: |
+          aws deploy push \
+            --application-name ${{ env.CODE_DEPLOY_APPLICATION_NAME }} \
+            --ignore-hidden-files \
+            --s3-location s3://$S3_BUCKET_NAME/$GITHUB_SHA.zip \
+            --source .
+
+      # S3 Bucket 파일 -> CodeDeploy 실행
+      - name: Deploy to AWS EC2 from S3
+        run: |
+          aws deploy create-deployment \
+            --application-name ${{ env.CODE_DEPLOY_APPLICATION_NAME }} \
+            --deployment-config-name CodeDeployDefault.AllAtOnce \
+            --deployment-group-name ${{ env.CODE_DEPLOY_DEPLOYMENT_GROUP_NAME }} \
+            --s3-location bucket=$S3_BUCKET_NAME,key=$GITHUB_SHA.zip,bundleType=zip

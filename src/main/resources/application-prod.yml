@@ -1,0 +1,72 @@
+server:
+  port: ${server.port}
+  servlet:
+    encoding:
+      charset: UTF-8
+      force: true
+
+spring:
+  servlet:
+    multipart:
+      max-file-size: 2MB
+  datasource:
+    url: jdbc:mysql://${rds.host.name}:${rds.port}/${rds.db.name}?characterEncoding=UTF-8&serverTimezone=Asia/Seoul
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    username: ${rds.user.name}
+    password: ${rds.password}
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: none
+    properties:
+      hibernate:
+        default_batch_fetch_size: 100
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: ${oauth2.client.id}
+            client-secret: ${oauth2.client.secret}
+            scope:
+              - profile
+              - email
+  mail:
+    host: smtp.gmail.com
+    port: ${email.port}
+    username: ${email.user.name}
+    password: ${email.password}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+  jwt:
+    secret: ${jwt.secret}
+
+  data:
+    redis:
+      host: ${redis.host}
+      port: ${redis.port}
+
+  elasticsearch:
+    uris: ${es.url}
+    username: ${es.username}
+    password: ${es.password}
+
+cloud:
+  aws:
+    credentials:
+      accessKey: ${aws.s3.key.access}
+      secretKey: ${aws.s3.key.secret}
+    s3:
+      bucket: ${aws.s3.bucket}
+    region:
+      static: ${cloud.aws.region.static}
+    stack:
+      auto: false
+
+logging:
+  level:
+    '[team.rescue]': DEBUG

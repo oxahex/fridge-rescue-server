@@ -1,0 +1,28 @@
+services:
+  elasticsearch:
+    container_name: 'fridge-rescue-es'
+    image: 'docker.elastic.co/elasticsearch/elasticsearch:7.17.10'
+    environment:
+      - 'ELASTIC_PASSWORD=fridgerescue'
+      - 'discovery.type=single-node'
+      - 'xpack.security.enabled=false'
+    ports:
+      - '9200:9200'
+      - '9300'
+  redis:
+    container_name: 'fridge-rescue-redis'
+    image: 'redis:latest'
+    ports:
+      - '6380:6379'
+  mysql:
+    container_name: 'fridge-rescue-mysql'
+    image: 'mysql:latest'
+    ports:
+      - '3307:3306'
+    environment:
+      MYSQL_DATABASE: 'fridgerescue'
+      MYSQL_ROOT_PASSWORD: 'fridgerescue'
+      MYSQL_USER: 'fridgerescue'
+      MYSQL_PASSWORD: 'fridgerescue'
+      TZ: Asia/Seoul
+
