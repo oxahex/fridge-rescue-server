@@ -23,6 +23,8 @@ import team.rescue.auth.dto.LoginDto.LoginResDto;
 import team.rescue.auth.provider.JwtTokenProvider;
 import team.rescue.auth.type.JwtTokenType;
 import team.rescue.auth.user.PrincipalDetails;
+import team.rescue.common.redis.RedisPrefix;
+import team.rescue.common.redis.RedisRepository;
 import team.rescue.error.exception.AuthException;
 import team.rescue.error.exception.ServiceException;
 import team.rescue.error.type.AuthError;
@@ -37,7 +39,6 @@ import team.rescue.notification.entity.NotificationProperty;
 import team.rescue.notification.event.NotificationEvent;
 import team.rescue.notification.event.NotificationEventPublisher;
 import team.rescue.notification.type.NotificationType;
-import team.rescue.util.RedisUtil;
 
 @Slf4j
 public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilter {
@@ -50,7 +51,7 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
 
 	private final ObjectMapper objectMapper;
 	private final AuthenticationManager authenticationManager;
-	private final RedisUtil redisUtil;
+	private final RedisRepository redisUtil;
 	private final MemberRepository memberRepository;
 	private final NotificationEventPublisher notificationEventPublisher;
 	private final FridgeRepository fridgeRepository;
@@ -59,7 +60,7 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
 	public JwtAuthenticationFilter(
 			AuthenticationManager authenticationManager,
 			ObjectMapper objectMapper,
-			RedisUtil redisUtil,
+			RedisRepository redisUtil,
 			MemberRepository memberRepository,
 			NotificationEventPublisher notificationEventPublisher,
 			FridgeRepository fridgeRepository,
@@ -120,7 +121,12 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
 		saveRefreshToken(principalDetails, refreshToken);
 
 		// redis 저장
-		redisUtil.put(principalDetails.getUsername(), refreshToken, REFRESH_TOKEN_EXPIRE_TIME);
+		redisUtil.put(
+				RedisPrefix.TOKEN,
+				principalDetails.getUsername(),
+				refreshToken,
+				REFRESH_TOKEN_EXPIRE_TIME
+		);
 
 		// access token을 Response Body에 담아서 클라이언트에게 전달
 		LoginResDto loginResponse = new LoginResDto(principalDetails.getMember(), accessToken);

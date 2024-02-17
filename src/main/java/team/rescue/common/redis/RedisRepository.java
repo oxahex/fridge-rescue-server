@@ -1,29 +1,27 @@
-package team.rescue.util;
+package team.rescue.common.redis;
 
 import java.util.concurrent.TimeUnit;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
 
-// TODO: util은 static class만 위치하므로 이후 패키지 이동 필요
 @Component
 @RequiredArgsConstructor
-@Transactional(readOnly = true)
-public class RedisUtil {
+public class RedisRepository {
 
 	private final RedisTemplate<String, Object> redisTemplate;
+	private static final String REDIS_KEY_SEPARATOR = "_";
 
-	@Transactional
-	public void put(String key, Object value, Long expirationTime) {
+	public void put(RedisPrefix prefix, String key, Object value, Long expirationTime) {
 		if (expirationTime != null) {
-			redisTemplate.opsForValue().set(key, value, expirationTime, TimeUnit.SECONDS);
+			redisTemplate.opsForValue().set(
+					prefix.name() + REDIS_KEY_SEPARATOR + key, value, expirationTime, TimeUnit.SECONDS
+			);
 		} else {
 			redisTemplate.opsForValue().set(key, value);
 		}
 	}
 
-	@Transactional
 	public void delete(String key) {
 		redisTemplate.delete(key);
 	}

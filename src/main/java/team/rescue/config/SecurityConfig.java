@@ -31,11 +31,11 @@ import team.rescue.auth.handler.OAuthAuthorizationFailureHandler;
 import team.rescue.auth.handler.OAuthAuthorizationSuccessHandler;
 import team.rescue.auth.service.AuthService;
 import team.rescue.auth.service.OAuthService;
+import team.rescue.common.redis.RedisRepository;
 import team.rescue.fridge.repository.FridgeIngredientRepository;
 import team.rescue.fridge.repository.FridgeRepository;
 import team.rescue.member.repository.MemberRepository;
 import team.rescue.notification.event.NotificationEventPublisher;
-import team.rescue.util.RedisUtil;
 
 @Slf4j
 @Configuration
@@ -47,7 +47,7 @@ public class SecurityConfig {
 	private final OAuthService oAuthService;
 	private final AuthService authService;
 	private final PasswordEncoder passwordEncoder;
-	private final RedisUtil redisUtil;
+	private final RedisRepository redisUtil;
 	private final ObjectMapper objectMapper;
 	private final MemberRepository memberRepository;
 	private final NotificationEventPublisher notificationEventPublisher;

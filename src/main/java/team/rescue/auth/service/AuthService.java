@@ -18,6 +18,7 @@ import team.rescue.auth.type.JwtTokenType;
 import team.rescue.auth.type.ProviderType;
 import team.rescue.auth.type.RoleType;
 import team.rescue.auth.user.PrincipalDetails;
+import team.rescue.common.redis.RedisRepository;
 import team.rescue.error.exception.AuthException;
 import team.rescue.error.exception.ServiceException;
 import team.rescue.error.type.AuthError;
@@ -27,7 +28,6 @@ import team.rescue.fridge.service.FridgeService;
 import team.rescue.member.dto.MemberDto.MemberInfoWithTokenDto;
 import team.rescue.member.entity.Member;
 import team.rescue.member.repository.MemberRepository;
-import team.rescue.util.RedisUtil;
 
 @Slf4j
 @Service
@@ -42,7 +42,7 @@ public class AuthService implements UserDetailsService {
 	private final FridgeService fridgeService;
 	private final MemberRepository memberRepository;
 	private final FridgeRepository fridgeRepository;
-	private final RedisUtil redisUtil;
+	private final RedisRepository redisUtil;
 
 
 	@Override

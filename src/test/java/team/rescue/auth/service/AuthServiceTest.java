@@ -25,6 +25,7 @@ import team.rescue.auth.dto.JoinDto.JoinResDto;
 import team.rescue.auth.provider.MailProvider;
 import team.rescue.auth.type.ProviderType;
 import team.rescue.auth.type.RoleType;
+import team.rescue.common.redis.RedisRepository;
 import team.rescue.error.exception.ServiceException;
 import team.rescue.error.type.ServiceError;
 import team.rescue.fridge.entity.Fridge;
@@ -34,7 +35,6 @@ import team.rescue.member.dto.MemberDto.MemberInfoDto;
 import team.rescue.member.entity.Member;
 import team.rescue.member.repository.MemberRepository;
 import team.rescue.mock.WithMockMember;
-import team.rescue.util.RedisUtil;
 
 @ExtendWith(MockitoExtension.class)
 class AuthServiceTest {
@@ -55,7 +55,7 @@ class AuthServiceTest {
 	MailProvider mailProvider;
 
 	@Mock
-	RedisUtil redisUtil;
+	RedisRepository redisUtil;
 
 	@Spy
 	private PasswordEncoder passwordEncoder;

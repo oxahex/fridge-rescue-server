@@ -17,11 +17,12 @@ import org.springframework.security.web.authentication.AuthenticationSuccessHand
 import team.rescue.auth.dto.LoginDto.LoginResDto;
 import team.rescue.auth.provider.JwtTokenProvider;
 import team.rescue.auth.user.PrincipalDetails;
+import team.rescue.common.redis.RedisPrefix;
+import team.rescue.common.redis.RedisRepository;
 import team.rescue.error.exception.ServiceException;
 import team.rescue.error.type.ServiceError;
 import team.rescue.member.entity.Member;
 import team.rescue.member.repository.MemberRepository;
-import team.rescue.util.RedisUtil;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -32,7 +33,7 @@ public class OAuthAuthorizationSuccessHandler implements AuthenticationSuccessHa
 	private static final String HEADER_ACCESS_TOKEN = "Access-Token";
 	private static final String HEADER_REFRESH_TOKEN = "Refresh-Token";
 
-	private final RedisUtil redisUtil;
+	private final RedisRepository redisRepository;
 	private final MemberRepository memberRepository;
 
 	@Override
@@ -53,7 +54,12 @@ public class OAuthAuthorizationSuccessHandler implements AuthenticationSuccessHa
 
 		saveRefreshToken(principalDetails, refreshToken);
 
-		redisUtil.put(principalDetails.getUsername(), refreshToken, REFRESH_TOKEN_EXPIRE_TIME);
+		redisRepository.put(
+				RedisPrefix.TOKEN,
+				principalDetails.getUsername(),
+				refreshToken,
+				REFRESH_TOKEN_EXPIRE_TIME
+		);
 
 		// access token은 Response Body에 담아서 클라이언트에게 전달
 		LoginResDto loginResponse = new LoginResDto(principalDetails.getMember(), accessToken);
