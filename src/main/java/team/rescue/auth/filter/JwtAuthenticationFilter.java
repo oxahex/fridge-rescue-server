@@ -47,8 +47,6 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
 	private static final String TOKEN_PREFIX = "Bearer ";
 	private static final String HEADER_ACCESS_TOKEN = "Access-Token";
 	private static final String HEADER_REFRESH_TOKEN = "Refresh-Token";
-	private static final long REFRESH_TOKEN_EXPIRE_TIME = 1000 * 60 * 60 * 24;   // 24h
-
 	private final ObjectMapper objectMapper;
 	private final AuthenticationManager authenticationManager;
 	private final RedisRepository redisUtil;
@@ -124,8 +122,7 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
 		redisUtil.put(
 				RedisPrefix.TOKEN,
 				principalDetails.getUsername(),
-				refreshToken,
-				REFRESH_TOKEN_EXPIRE_TIME
+				refreshToken
 		);
 
 		// access token을 Response Body에 담아서 클라이언트에게 전달

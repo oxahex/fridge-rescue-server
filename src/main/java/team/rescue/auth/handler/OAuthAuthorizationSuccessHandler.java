@@ -54,12 +54,7 @@ public class OAuthAuthorizationSuccessHandler implements AuthenticationSuccessHa
 
 		saveRefreshToken(principalDetails, refreshToken);
 
-		redisRepository.put(
-				RedisPrefix.TOKEN,
-				principalDetails.getUsername(),
-				refreshToken,
-				REFRESH_TOKEN_EXPIRE_TIME
-		);
+		redisRepository.put(RedisPrefix.TOKEN, principalDetails.getUsername(), refreshToken);
 
 		// access token은 Response Body에 담아서 클라이언트에게 전달
 		LoginResDto loginResponse = new LoginResDto(principalDetails.getMember(), accessToken);

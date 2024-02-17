@@ -10,27 +10,25 @@ import org.springframework.stereotype.Component;
 public class RedisRepository {
 
 	private final RedisTemplate<String, Object> redisTemplate;
-	private static final String REDIS_KEY_SEPARATOR = "_";
 
-	public void put(RedisPrefix prefix, String key, Object value, Long expirationTime) {
-		if (expirationTime != null) {
-			redisTemplate.opsForValue().set(
-					prefix.name() + REDIS_KEY_SEPARATOR + key, value, expirationTime, TimeUnit.SECONDS
-			);
-		} else {
-			redisTemplate.opsForValue().set(key, value);
-		}
+	public void put(RedisPrefix prefix, String key, Object value) {
+		redisTemplate.opsForValue().set(
+				prefix.name() + key,
+				value,
+				prefix.getExpiredTime(),
+				TimeUnit.SECONDS
+		);
 	}
 
 	public void delete(String key) {
 		redisTemplate.delete(key);
 	}
 
-	public Object get(String key) {
+	public String get(String key) {
 
 		// key에 해당하는 값이 존재하면 해당 값 반환
 		if (isExists(key)) {
-			return redisTemplate.opsForValue().get(key);
+			return (String) redisTemplate.opsForValue().get(key);
 		} else {
 			return null;
 		}
