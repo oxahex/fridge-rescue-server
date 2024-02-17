@@ -18,6 +18,7 @@ import team.rescue.auth.type.JwtTokenType;
 import team.rescue.auth.type.ProviderType;
 import team.rescue.auth.type.RoleType;
 import team.rescue.auth.user.PrincipalDetails;
+import team.rescue.common.redis.RedisPrefix;
 import team.rescue.common.redis.RedisRepository;
 import team.rescue.error.exception.AuthException;
 import team.rescue.error.exception.ServiceException;
@@ -25,7 +26,6 @@ import team.rescue.error.type.AuthError;
 import team.rescue.error.type.ServiceError;
 import team.rescue.fridge.repository.FridgeRepository;
 import team.rescue.fridge.service.FridgeService;
-import team.rescue.member.dto.MemberDto.MemberInfoWithTokenDto;
 import team.rescue.member.entity.Member;
 import team.rescue.member.repository.MemberRepository;
 
@@ -42,7 +42,7 @@ public class AuthService implements UserDetailsService {
 	private final FridgeService fridgeService;
 	private final MemberRepository memberRepository;
 	private final FridgeRepository fridgeRepository;
-	private final RedisRepository redisUtil;
+	private final RedisRepository redisRepository;
 
 
 	@Override
@@ -101,8 +101,10 @@ public class AuthService implements UserDetailsService {
 
 		log.info("[인증 메일 전송] email={}", member.getEmail());
 
+		// 인증 코드 생성 및 전송
 		String emailCode = mailProvider.sendEmail(member);
-//		member.updateEmailCode(emailCode);
+		// 인증 코드 Redis 저장
+		redisRepository.put(RedisPrefix.CODE, member.getEmail(), emailCode);
 
 		log.info("[인증 메일 전송 완료]");
 
@@ -114,10 +116,10 @@ public class AuthService implements UserDetailsService {
 	 *
 	 * @param email 로그인 유저 이메일
 	 * @param code  유저 입력 이메일 코드
-	 * @return MemberInfo
+	 * @return JWT Access Token
 	 */
 	@Transactional
-	public MemberInfoWithTokenDto confirmEmailCode(String email, String code) {
+	public String confirmEmailCode(String email, String code) {
 
 		Member member = memberRepository.findUserByEmail(email)
 				.orElseThrow(() -> new ServiceException(ServiceError.USER_NOT_FOUND));
@@ -131,10 +133,10 @@ public class AuthService implements UserDetailsService {
 		// 냉장고 생성
 		member.registerFridge(fridgeService.createFridge(member));
 
+		// 새 인증 정보 생성
 		PrincipalDetails principalDetails = new PrincipalDetails(member);
-		String accessToken = JwtTokenProvider.createToken(principalDetails, JwtTokenType.ACCESS_TOKEN);
 
-		return MemberInfoWithTokenDto.of(member, accessToken);
+		return JwtTokenProvider.createToken(principalDetails, JwtTokenType.ACCESS_TOKEN);
 	}
 
 	/**
@@ -144,9 +146,16 @@ public class AuthService implements UserDetailsService {
 	 * @param code   유저 입력 이메일 코드
 	 */
 	private void validateEmailCode(Member member, String code) {
-		if (!Objects.equals(member.getEmailCode(), code)) {
+
+		String key = RedisPrefix.CODE.name() + member.getEmail();
+		String emailCode = redisRepository.get(key);
+
+		if (!Objects.equals(emailCode, code)) {
 			throw new ServiceException(ServiceError.EMAIL_CODE_MIS_MATCH);
 		}
+
+		// 일치하는 경우 삭제
+		redisRepository.delete(key);
 	}
 
 	/**
@@ -189,7 +198,7 @@ public class AuthService implements UserDetailsService {
 	 */
 	@Transactional
 	public TokenDto reissueToken(String refreshToken, PrincipalDetails principalDetails) {
-		String cachedRefreshToken = (String) redisUtil.get(principalDetails.getUsername());
+		String cachedRefreshToken = redisRepository.get(principalDetails.getUsername());
 
 		String savedToken =
 				cachedRefreshToken == null ? getTokenFromDB(principalDetails) : cachedRefreshToken;
@@ -221,6 +230,6 @@ public class AuthService implements UserDetailsService {
 				.orElseThrow(() -> new ServiceException(ServiceError.USER_NOT_FOUND));
 
 		member.updateToken(null);
-		redisUtil.delete(email);
+		redisRepository.delete(email);
 	}
 }
