@@ -63,10 +63,6 @@ public class Member {
 	@Column(name = "provider_id", length = 100)
 	private String providerId;
 
-	// Email 가입 시 인증 코드
-	@Column(name = "email_code", length = 10)
-	private String emailCode;
-
 	@Column(name = "jwt_token")
 	private String token;
 
@@ -98,10 +94,6 @@ public class Member {
 	@LastModifiedDate
 	@Column(name = "modified_at")
 	private LocalDateTime modifiedAt;
-
-	public void updateEmailCode(String emailCode) {
-		this.emailCode = emailCode;
-	}
 
 	public void updateRole(RoleType role) {
 		this.role = role;

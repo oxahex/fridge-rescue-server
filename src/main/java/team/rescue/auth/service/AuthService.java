@@ -102,7 +102,7 @@ public class AuthService implements UserDetailsService {
 		log.info("[인증 메일 전송] email={}", member.getEmail());
 
 		String emailCode = mailProvider.sendEmail(member);
-		member.updateEmailCode(emailCode);
+//		member.updateEmailCode(emailCode);
 
 		log.info("[인증 메일 전송 완료]");
 
