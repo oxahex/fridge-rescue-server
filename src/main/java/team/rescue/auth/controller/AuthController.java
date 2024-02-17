@@ -78,7 +78,7 @@ public class AuthController {
 		log.info("[이메일 코드 확인] code={}", emailConfirmDto.getCode());
 
 		String accessToken =
-				authService.confirmEmailCode(details.getUsername(), emailConfirmDto.getCode());
+				authService.confirmEmailCode(details.getName(), emailConfirmDto.getCode());
 
 		return new ResponseEntity<>(
 				new ResponseDto<>(null, accessToken), HttpStatus.OK

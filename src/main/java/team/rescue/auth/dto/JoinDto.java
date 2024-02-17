@@ -33,8 +33,6 @@ public class JoinDto {
 	@Setter
 	public static class EmailConfirmDto {
 
-		private String email;
-
 		@NotEmpty(message = "이메일 인증 코드를 입력해주세요.")
 		@Size(min = 6, max = 6, message = "올바른 인증 코드가 아닙니다.")
 		private String code;
