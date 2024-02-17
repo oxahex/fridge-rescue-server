@@ -26,7 +26,6 @@ import team.rescue.auth.service.AuthService;
 import team.rescue.auth.type.ProviderType;
 import team.rescue.auth.user.PrincipalDetails;
 import team.rescue.common.dto.ResponseDto;
-import team.rescue.member.dto.MemberDto.MemberInfoWithTokenDto;
 
 @Slf4j
 @RestController
@@ -69,8 +68,8 @@ public class AuthController {
 	 * @return 확인 여부 반환
 	 */
 	@PostMapping("/email/confirm")
-	@PreAuthorize("permitAll()")
-	public ResponseEntity<ResponseDto<MemberInfoWithTokenDto>> emailConfirm(
+	@PreAuthorize("hasAuthority('GUEST')")
+	public ResponseEntity<ResponseDto<String>> emailConfirm(
 			@RequestBody @Valid JoinDto.EmailConfirmDto emailConfirmDto,
 			BindingResult bindingResult,
 			@AuthenticationPrincipal PrincipalDetails details
@@ -78,17 +77,11 @@ public class AuthController {
 
 		log.info("[이메일 코드 확인] code={}", emailConfirmDto.getCode());
 
-		MemberInfoWithTokenDto memberInfoDto = null;
+		String accessToken =
+				authService.confirmEmailCode(details.getUsername(), emailConfirmDto.getCode());
 
-		if (details == null) {
-			memberInfoDto = authService.confirmEmailCode(emailConfirmDto.getEmail(),
-					emailConfirmDto.getCode());
-		} else {
-			memberInfoDto = authService
-					.confirmEmailCode(details.getUsername(), emailConfirmDto.getCode());
-		}
 		return new ResponseEntity<>(
-				new ResponseDto<>(null, memberInfoDto), HttpStatus.OK
+				new ResponseDto<>(null, accessToken), HttpStatus.OK
 		);
 	}
 
