@@ -22,6 +22,7 @@ import team.rescue.auth.dto.LoginDto.LoginReqDto;
 import team.rescue.auth.dto.LoginDto.LoginResDto;
 import team.rescue.auth.provider.JwtTokenProvider;
 import team.rescue.auth.type.JwtTokenType;
+import team.rescue.auth.type.RoleType;
 import team.rescue.auth.user.PrincipalDetails;
 import team.rescue.common.redis.RedisPrefix;
 import team.rescue.common.redis.RedisRepository;
@@ -144,6 +145,11 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
 	}
 
 	private void validateFridgeIngredientsExpirationDate(PrincipalDetails principalDetails) {
+
+		if (principalDetails.getMember().getRole() == RoleType.GUEST) {
+			return;
+		}
+
 		Fridge fridge = fridgeRepository.findByMember(principalDetails.getMember())
 				.orElseThrow(() -> new ServiceException(ServiceError.FRIDGE_NOT_FOUND));
 
