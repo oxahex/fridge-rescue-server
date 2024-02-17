@@ -13,7 +13,7 @@ public class RedisRepository {
 
 	public void put(RedisPrefix prefix, String key, Object value) {
 		redisTemplate.opsForValue().set(
-				prefix.name() + key,
+				prefix.getPrefix() + key,
 				value,
 				prefix.getExpiredTime(),
 				TimeUnit.SECONDS
